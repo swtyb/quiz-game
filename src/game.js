@@ -251,7 +251,7 @@ function playAgain() {
     showScreen('game-screen');
     score = 0;
     currentQuestionIndex = 0;
-    loadQuestion();
+    loadQnpmuestion();
 }
 
 // 🏠 BACK TO LOGIN
