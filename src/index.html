@@ -1,58 +1,112 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Simple Quiz Game</title>
+  <meta charset="UTF-8" />
+  <title>Bryan Hard Quiz Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 <body>
-    <div id="app">
-        <!-- LOADING SCREEN -->
-        <div id="loader" class="loader">
-            <p>Loading quiz…</p>
-        </div>
-        
-        <!-- LOGIN SCREEN -->
-        <div id="login-screen" class="screen active">
-            <h1>🌍 Quick Quiz</h1>
-            <input type="text" id="username" placeholder="Enter your name" maxlength="20">
-            <button onclick="startGame()">Start Quiz</button>
-            
-            <div class="leaderboard-preview">
-                <h3>🏆 Top Scores</h3>
-                <div id="top-scores">Loading...</div>
-            </div>
-        </div>
 
-        <!-- GAME SCREEN -->
-        <div id="game-screen" class="screen">
-            <div class="header">
-                <span>Player: <strong id="player-name">-</strong></span>
-                <span>Score: <strong id="score">0</strong></span>
-                <span>Time: <strong id="timer">10</strong>s</span>
-            </div>
+    <!-- Starfield background layers -->
+     <div class="stars"></div>
+     <div class="stars2"></div>
+     <div class="stars3"></div>
 
-            <div class="question-box">
-                <img id="question-image" src="" alt="">
-                <div id="question-text" class="question-text"></div>
-            </div>
-            <div id="answers" class="answers"></div>
-        </div>
 
-        <!-- RESULTS SCREEN -->
-        <div id="results-screen" class="screen">
-            <h1>Quiz Complete! 🎉</h1>
-            <h2>Score: <span id="final-score">0</span></h2>
-            <p id="results-text"></p>
-            
-            <div class="buttons">
-                <button onclick="playAgain()">Play Again</button>
-                <button onclick="showLogin()">Exit</button>
-            </div>
+  <!-- Hidden background music -->
+  <audio autoplay
+    id="bg-music"
+    src="https://gooztzrspeikvynifjll.supabase.co/storage/v1/object/public/Musics/music1.mp3"
+    loop
+  ></audio>
 
-            <div class="leaderboard">
-                <h3>🏆 Leaderboard</h3>
-                <div id="leaderboard-scores"></div>
-            </div>
-        </div>
+  <!-- Music toggle button (top-right) -->
+  <button id="music-toggle" class="music-toggle">🔇 Music Off</button>
+
+  <!-- Volume slider -->
+  <label class="volume-label" for="volume-slider" style="position: fixed; top: 56px; right: 16px; z-index: 100;">
+    Volume:
+    <input
+      id="volume-slider"
+      type="range"
+      min="0"
+      max="100"
+      value="40"
+    />
+  </label>
+
+  <div id="app">
+    <!-- LOADING SCREEN -->
+    <div id="loader" class="loader">
+      <p>Loading quiz…</p>
     </div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="screen active">
+      <div class="login-shell">
+        <h1 class="login-title">Extremely Hard Quiz</h1>
+
+        <div class="login-controls">
+          <input
+            type="text"
+            id="username"
+            placeholder="Enter your name"
+            maxlength="20"
+          />
+          <button onclick="startGame()">Start Quiz</button>
+        </div>
+      </div>
+
+      <div class="leaderboard-preview">
+        <h3>🏆 Top Scores</h3>
+        <div id="top-scores">Loading...</div>
+      </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen" class="screen">
+      <!-- Progress bar at top -->
+      <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+      </div>
+
+      <div class="header">
+        <span>Player: <strong id="player-name">-</strong></span>
+        <span>Score: <strong id="score">0</strong></span>
+        <span class="timer-pill">
+          ⏱ <span id="timer">10</span>s
+        </span>
+      </div>
+
+      <div class="question-box">
+        <img id="question-image" src="" alt="" />
+        <div id="question-text" class="question-text"></div>
+      </div>
+
+      <div id="answers" class="answers"></div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div id="results-screen" class="screen">
+      <h1>Quiz Complete! 🎉</h1>
+      <h2>Score: <span id="final-score">0</span></h2>
+      <p id="results-text"></p>
+
+      <div class="buttons">
+        <button onclick="playAgain()">Play Again</button>
+        <button onclick="showLogin()">Exit</button>
+      </div>
+
+      <div class="leaderboard">
+        <h3>🏆 Leaderboard</h3>
+        <div id="leaderboard-scores"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Your bundled JS -->
+  <script src="bundle.js" defer></script>
 </body>
 </html>
