@@ -1,3 +1,4 @@
+// game.js
 import { createClient } from '@supabase/supabase-js';
 
 // Get Supabase credentials from environment variables
@@ -44,8 +45,8 @@ async function preloadAssets() {
 }
 
 /* ----------  FIXED TIMER  ---------- */
-let timer      = null;
-let timeLeft   = 10;
+let timer    = null;
+let timeLeft = 20;   // 20s per question
 
 // 🎮 GAME STATE
 let currentPlayer = '';
@@ -58,8 +59,8 @@ function animateQuestionChange() {
   const box = document.querySelector('.question-box');
   const answers = document.getElementById('answers');
 
-  box.classList.add('fade-out');
-  answers.classList.add('fade-out');
+  if (box) box.classList.add('fade-out');
+  if (answers) answers.classList.add('fade-out');
 
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -71,6 +72,8 @@ function animateQuestionChange() {
 function animateQuestionIn() {
   const box = document.querySelector('.question-box');
   const answers = document.getElementById('answers');
+
+  if (!box || !answers) return;
 
   box.classList.remove('fade-out');
   answers.classList.remove('fade-out');
@@ -152,6 +155,35 @@ function playSFX(url) {
   sfx.play().catch(err => console.log("SFX play error:", err));
 }
 
+/* ----------  FEEDBACK OVERLAY (✓ / ✕ FLASH) ---------- */
+
+function showFeedback(type) {
+  const overlay = document.getElementById('feedback-overlay');
+  const icon = overlay ? overlay.querySelector('.feedback-icon') : null;
+  if (!overlay || !icon) return;
+
+  // reset classes to restart animation
+  overlay.classList.remove('correct', 'wrong', 'show');
+
+  // force reflow
+  void overlay.offsetWidth;
+
+  if (type === 'correct') {
+    overlay.classList.add('correct');
+    icon.textContent = '✓';
+  } else {
+    overlay.classList.add('wrong');
+    icon.textContent = '✕';
+  }
+
+  overlay.classList.add('show');
+
+  // hide after short flash
+  setTimeout(() => {
+    overlay.classList.remove('show');
+  }, 250);
+}
+
 /* ----------  INIT GAME  ---------- */
 
 async function initGame() {
@@ -188,7 +220,8 @@ async function loadQuestions() {
 }
 
 
-// 🏆 LOAD LEADERBOARD
+/* ----------  LEADERBOARD (LOGIN) ---------- */
+
 async function loadLeaderboard() {
   const { data, error } = await client
     .from('scores')
@@ -203,7 +236,7 @@ async function loadLeaderboard() {
   }
 
   const scoresElement = document.getElementById('top-scores');
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     scoresElement.innerHTML = '<p>No scores yet! Be the first!</p>';
     return;
   }
@@ -227,7 +260,7 @@ async function startGame() {
 
   currentPlayer = username;
 
-  // 🔁 Always get a fresh random set from Supabase
+  // Always get a fresh random set from Supabase
   await loadQuestions();
 
   if (!questions || questions.length === 0) {
@@ -261,7 +294,7 @@ function loadQuestion() {
   const txtBox = document.getElementById('question-text');
 
   // Update progress bar
-  const progress = ((currentQuestionIndex) / questions.length) * 100;
+  const progress = (currentQuestionIndex / questions.length) * 100;
   document.getElementById('progress-bar').style.width = progress + "%";
 
   if (question.question_type === 'text') {
@@ -288,6 +321,13 @@ function loadQuestion() {
   answers.forEach(answer => {
     const button = document.createElement('button');
     button.textContent = answer;
+
+    // entrance animation
+    button.classList.add('answer-enter');
+    button.addEventListener('animationend', () => {
+      button.classList.remove('answer-enter');
+    }, { once: true });
+
     button.onclick = () => checkAnswer(answer, question.correct_answer);
     answersDiv.appendChild(button);
   });
@@ -300,7 +340,7 @@ function loadQuestion() {
 
 function startTimer() {
   clearInterval(timer);          // kill any old interval
-  timeLeft = 10;
+  timeLeft = 20;
   tick();                        // show first number immediately
 
   timer = setInterval(() => {
@@ -323,12 +363,17 @@ function tick() {
   if (!pill) return;
 
   // Remove old states
-  pill.classList.remove('timer-warning', 'timer-danger');
+  pill.classList.remove('timer-ok', 'timer-warning', 'timer-danger');
 
-  if (timeLeft <= 2) {
-    pill.classList.add('timer-danger');
-  } else if (timeLeft <= 5) {
+  if (timeLeft > 10) {
+    // 20–11 seconds → green
+    pill.classList.add('timer-ok');
+  } else if (timeLeft > 5) {
+    // 10–6 seconds → yellow
     pill.classList.add('timer-warning');
+  } else {
+    // 5–0 seconds → red
+    pill.classList.add('timer-danger');
   }
 }
 
@@ -340,21 +385,32 @@ function checkAnswer(selected, correct) {
   const buttons = document.querySelectorAll('#answers button');
   buttons.forEach(button => {
     button.disabled = true;
+
     if (button.textContent === correct) {
-      button.classList.add('correct');
+      button.classList.add('correct', 'answer-correct-anim');
     } else if (button.textContent === selected && selected !== correct) {
-      button.classList.add('wrong');
+      button.classList.add('wrong', 'answer-wrong-anim');
     }
   });
 
   if (selected === correct) {
     playSFX(SFX_CORRECT);
+    showFeedback('correct');
 
     const points = 10 + timeLeft;
     score += points;
     document.getElementById('score').textContent = score;
+
+    // score pop animation
+    const scoreEl = document.getElementById('score');
+    if (scoreEl) {
+      scoreEl.classList.remove('score-pop');
+      void scoreEl.offsetWidth;  // reflow
+      scoreEl.classList.add('score-pop');
+    }
   } else {
     playSFX(SFX_WRONG);
+    showFeedback('wrong');
   }
 
   setTimeout(nextQuestion, 2000);
@@ -366,7 +422,7 @@ async function nextQuestion() {
   await animateQuestionChange();
   currentQuestionIndex++;
 
-  // 👇 If that was the last question, go straight to end screen
+  // If that was the last question, go straight to end screen
   if (currentQuestionIndex >= questions.length) {
     endGame();
     return;
@@ -376,20 +432,60 @@ async function nextQuestion() {
   animateQuestionIn();
 }
 
+/* ----------  FINAL SCORE COUNT-UP ---------- */
+
+function animateFinalScore(finalScore) {
+  const el = document.getElementById('final-score');
+  if (!el) return;
+
+  const duration = 700; // ms
+  const start = performance.now();
+
+  function frame(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const current = Math.floor(progress * finalScore);
+    el.textContent = current;
+    if (progress < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      el.textContent = finalScore;
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
 
 /* ----------  END GAME  ---------- */
 
 async function endGame() {
-  // 🔊 Switch back to intro music with fade
+  // Switch back to intro music with fade
   switchMusicSmooth(MUSIC_1_URL);
 
-  // 🎯 Show results screen IMMEDIATELY
-  document.getElementById('final-score').textContent = score;
-  document.getElementById('results-text').textContent =
-    `You got ${score} points, ${currentPlayer}!`;
+  // Show results screen immediately
   showScreen('results-screen');
 
-  // 📝 Now save score + load leaderboard in the background
+  // results screen pop animation
+  const results = document.getElementById('results-screen');
+  if (results) {
+    results.classList.remove('results-enter');
+    void results.offsetWidth;
+    results.classList.add('results-enter');
+  }
+
+  // animate message + score
+  const finalMessage = `You got ${score} points, ${currentPlayer}!`;
+  const resultsText = document.getElementById('results-text');
+  if (resultsText) {
+    resultsText.textContent = finalMessage;
+  }
+
+  const scoreEl = document.getElementById('final-score');
+  if (scoreEl) {
+    scoreEl.textContent = '0';
+    animateFinalScore(score);
+  }
+
+  // Save score + load leaderboard in the background
   try {
     const { error } = await client
       .from('scores')
@@ -400,7 +496,6 @@ async function endGame() {
 
     if (error) {
       console.error('Error saving score:', error);
-      // optional: show a tiny message somewhere instead of alert
       return;
     }
 
@@ -442,7 +537,7 @@ async function playAgain() {
   score = 0;
   currentQuestionIndex = 0;
 
-  // 🔁 Get a fresh random selection again
+  // Get a fresh random selection again
   await loadQuestions();
 
   // Back to quiz music with smooth transition

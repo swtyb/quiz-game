@@ -19,7 +19,7 @@ let musicVolume = 0.4;        // 0–1
 window.isMusicMuted = isMusicMuted;
 window.musicVolume = musicVolume;
 
-// (Optional) helper if you ever want to manually switch via console
+// Optional helper if you ever want to manually switch via console
 window.playMusic = function (track = 1) {
   const audio = document.getElementById('bg-music');
 
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     audio.volume = musicVolume;      // starting volume
   }
 
-  // 🟡 MUTE / UNMUTE BUTTON
+  // MUTE / UNMUTE BUTTON
   if (musicToggle && audio) {
     musicToggle.textContent = "🔇 Music Off";
 
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 🎚 VOLUME SLIDER
+  // VOLUME SLIDER
   if (volumeSlider && audio) {
     // initial slider value (0–100)
     volumeSlider.value = musicVolume * 100;
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 🟢 Game initialization
+  // Game initialization
   try {
     console.log('Starting game initialization...');
     await initGame();

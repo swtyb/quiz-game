@@ -7,11 +7,15 @@
 </head>
 <body>
 
-    <!-- Starfield background layers -->
-     <div class="stars"></div>
-     <div class="stars2"></div>
-     <div class="stars3"></div>
+  <!-- Starfield background layers -->
+  <div class="stars"></div>
+  <div class="stars2"></div>
+  <div class="stars3"></div>
 
+  <!-- Feedback overlay for correct / wrong answers -->
+  <div id="feedback-overlay">
+    <div class="feedback-icon"></div>
+  </div>
 
   <!-- Hidden background music -->
   <audio autoplay
@@ -24,7 +28,7 @@
   <button id="music-toggle" class="music-toggle">🔇 Music Off</button>
 
   <!-- Volume slider -->
-  <label class="volume-label" for="volume-slider" style="position: fixed; top: 56px; right: 16px; z-index: 100;">
+  <label class="volume-label" for="volume-slider">
     Volume:
     <input
       id="volume-slider"
@@ -74,7 +78,7 @@
         <span>Player: <strong id="player-name">-</strong></span>
         <span>Score: <strong id="score">0</strong></span>
         <span class="timer-pill">
-          ⏱ <span id="timer">10</span>s
+          ⏱ <span id="timer">20</span>s
         </span>
       </div>
 
